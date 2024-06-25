@@ -1,15 +1,17 @@
 import NextAuth, { CredentialsSignin } from "next-auth"
 import CredentialProvider from "next-auth/providers/credentials"
-import google from "next-auth/providers/google"
+import github from "next-auth/providers/github"
 import { User } from "./models/user.model";
-import bcrypt ,{ compare} from "bcryptjs"
+import { compare } from "bcryptjs"
+import { connectDB } from "./lib/connectDB";
+import { redirect } from "next/navigation";
 
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
     providers: [
-        google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        github({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
         }),
         CredentialProvider({
             name: "Email",
@@ -23,24 +25,51 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 }
             },
             authorize: async (credentials) => {
-                const email = credentials.email as string | undefined;
-                const password = credentials.password as string | undefined;
+                const email = credentials.email as string
+                const password = credentials.password as string 
 
                 if (!email || !password) {
                     throw new CredentialsSignin("Please provide both email and password")
                 }
-                if (typeof email !== "string") throw new CredentialsSignin("Email is not valid")
+                // if (typeof email !== "string") throw new CredentialsSignin("Email is not valid")
+
+                await connectDB();
+
                 const user = await User.findOne({ email }).select("+password");
-                if(!user.password)throw new CredentialsSignin("Invalid email or password")
-               let hashedPassword = await bcrypt.hash(password,5)
-                const isMatch = await compare(user.password,password)
+                if (!user) throw new CredentialsSignin("Password doesn't match")
+                if (!user.password) throw new CredentialsSignin("Invalid email or password")
+                const isMatch = await compare(user.password, password)
+// <<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>
+//<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>
+                if(user){
+                    console.log(user)
+                }
 
-
-                if(!user) throw new CredentialsSignin("Password doesn't match")
-                if(password !== "passcode")
-                    throw new CredentialsSignin("Password doesn't match")
-                else return {email:user.email,password:user.password,id:user._id};
+                return { name: user.name, email: user.email, id: user._id };
+                
             }
         }),
     ],
+    pages: {
+        signIn: "/login"
+    },
+    callbacks: {
+        signIn: async ({ user, account }) => {
+            if (account?.provider === "github") {
+                try {
+                    const { email, name, image, id } = user;
+                    await connectDB();
+                    const already = await User.findOne({ id: id })
+                    if (already) {
+                        return true
+                    }
+                    await User.create({ name, email, image, googleId: id })
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            if (account?.provider === "credentials") return true;
+            return true;
+        }
+    }
 })

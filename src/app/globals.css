@@ -74,3 +74,16 @@
       @apply bg-background text-foreground;
     }
   }
+
+  @keyframes glow {
+    0%, 100% {
+      text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff00ea, 0 0 20px #ff00dd, 0 0 25px #ff00dd, 0 0 30px #ff00c8, 0 0 35px #ff0000;
+    }
+    50% {
+      text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #000000, 0 0 40px #ff00d4, 0 0 50px #ff00d4, 0 0 60px #ff00d4, 0 0 70px #ff00d4;
+    }
+  }
+  
+  .glowing-text {
+    animation: glow 1.5s infinite alternate;
+  }

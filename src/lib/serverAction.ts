@@ -2,15 +2,22 @@
 import bcrypt from "bcryptjs"
 import { User } from "@/models/user.model"
 import { redirect } from "next/navigation"
+import { connectDB } from "./connectDB"
+import { CredentialsSignin } from "next-auth"
+import { signIn } from "@/auth"
 
 
 export const handleLogin = async (formData: FormData) => {
     "use server"
-    const email = formData.get("email") as string | undefined
-    const password = formData.get("password") as string | undefined
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
+    try {
+        await signIn("credentials", { email, password })
 
-    console.log(email, password)
-
+    } catch (error) {
+        const err = error as CredentialsSignin;
+        return err.message
+    }
 }
 
 
@@ -24,10 +31,21 @@ export const handleSignUp = async (formData: FormData) => {
     if (user) throw new Error("User already exists")
 
     const hashedPassword = await bcrypt.hash(password, 5)
-    // connect to database
+    await connectDB();
     await User.create({
         name, email, password: hashedPassword
     })
-
     redirect("/login")
 }
+
+
+export const googleLogin = async () => {
+    "use server"
+    await signIn("github")
+}
+
+
+
+
+
+
