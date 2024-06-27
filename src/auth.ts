@@ -1,11 +1,9 @@
-import NextAuth, { CredentialsSignin } from "next-auth"
+import NextAuth from "next-auth"
 import CredentialProvider from "next-auth/providers/credentials"
 import github from "next-auth/providers/github"
 import { User } from "./models/user.model";
-import { compare } from "bcryptjs"
 import { connectDB } from "./lib/connectDB";
-import { redirect } from "next/navigation";
-
+import bcrypt from "bcryptjs"
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
     providers: [
@@ -21,37 +19,47 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     type: "email",
                 }, password: {
                     type: "password",
-                    label: "Password"
+                    label: "password"
                 }
             },
             authorize: async (credentials) => {
                 const email = credentials.email as string
-                const password = credentials.password as string 
-
-                if (!email || !password) {
-                    throw new CredentialsSignin("Please provide both email and password")
+                const password = credentials.password as string
+                if (!credentials || !credentials.email || !credentials.password) {
+                    throw new Error('Missing credentials');
                 }
-                // if (typeof email !== "string") throw new CredentialsSignin("Email is not valid")
-
-                await connectDB();
-
-                const user = await User.findOne({ email }).select("+password");
-                if (!user) throw new CredentialsSignin("Password doesn't match")
-                if (!user.password) throw new CredentialsSignin("Invalid email or password")
-                const isMatch = await compare(user.password, password)
-// <<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>
-//<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>
-                if(user){
-                    console.log(user)
-                }
-
-                return { name: user.name, email: user.email, id: user._id };
                 
+                await connectDB();
+                const user = await User.findOne({ email })
+
+                if (!user) {
+                    console.log("??????????????Invalid email or password")
+                    console.log(email, password)
+                    throw new Error("Invalid email")
+                }
+
+
+                const isMatch = await bcrypt.compare(password, user.password);
+                if (isMatch) {
+                     console.log("logined");
+                 return { name: user.name, email: user.email, id: user._id }; 
+                }
+                else throw new Error("Wrong Password")
+
+                // }
+                // else{
+                //     console.log("Invalid email or password")
+                //     console.log(email,password)
+                //     return null                    
+                //     // throw new Error("Invalid username and password <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                // }
+
+
             }
         }),
     ],
     pages: {
-        signIn: "/login"
+        signIn: "/login",
     },
     callbacks: {
         signIn: async ({ user, account }) => {
