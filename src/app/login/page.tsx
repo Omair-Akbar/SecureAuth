@@ -4,7 +4,6 @@ import Link from "next/link";
 import { googleLogin, handleLogin } from "@/lib/serverAction";
 import { auth } from "@/auth";
 import { redirect  } from "next/navigation";
-import toast from 'react-hot-toast';
 
 const page = async () => {
     
