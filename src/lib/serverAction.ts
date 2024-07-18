@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { connectDB } from "./connectDB"
 import { auth, signIn } from "@/auth"
 import bcrypt from "bcryptjs"
+import toast from "react-hot-toast"
 
 export const handleLogin = async (formData: FormData) => {
     "use server"
@@ -47,6 +48,7 @@ export const handleSignUp = async (formData: FormData) => {
 export const googleLogin = async () => {
     "use server"
     await signIn("github")
+    toast("",{position:"top-center"})
 }
 
 

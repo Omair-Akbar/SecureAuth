@@ -4,6 +4,7 @@ import github from "next-auth/providers/github"
 import { User } from "./models/user.model";
 import { connectDB } from "./lib/connectDB";
 import bcrypt from "bcryptjs"
+import toast from "react-hot-toast";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
     providers: [
@@ -41,8 +42,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
                 const isMatch = await bcrypt.compare(password, user.password);
                 if (isMatch) {
-                     console.log("logined");
-                 return { name: user.name, email: user.email, id: user._id }; 
+                    console.log("Login Succesfully")
+
+                    // toast("Login Succesfully")
+                    return { name: user.name, email: user.email, id: user._id }; 
                 }
                 else throw new Error("Wrong Password")
 
