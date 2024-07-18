@@ -12,12 +12,7 @@ const page = async () => {
     if (session?.user) {
         redirect("/")
     }
-      
-
-  
-
-
-    
+          
     return (
         <div className="bg-gray-900 min-h-screen flex justify-center items-center text-white">
             <div className="bg-gray-800 pt-8 pl-8 pr-8 pb-3 rounded-lg shadow-lg mx-7 w-full sm:w-96">
