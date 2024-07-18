@@ -13,8 +13,9 @@ const page = async () => {
         redirect("/")
     }
       
-    
+
   
+    
 
     return (
         <div className="bg-gray-900 min-h-screen flex justify-center items-center text-white">
